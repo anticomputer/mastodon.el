@@ -1,0 +1,15 @@
+pipeline:
+  current:
+    image: silex/emacs:cask
+    commands:
+      - emacs --version
+      - cask install
+      - cask emacs -batch -l test/ert-helper.el -f ert-run-tests-batch-and-exit
+  last:
+    image: silex/emacs:27-ci-cask
+    commands:
+      - emacs --version
+      - cask install
+      - cask emacs -batch -l test/ert-helper.el -f ert-run-tests-batch-and-exit
+
++branches: [ main, develop ]

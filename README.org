@@ -1,0 +1,326 @@
+#+OPTIONS: toc:nil
+
+@@html: <a href="https://melpa.org/#/mastodon"><img alt="MELPA" src="https://melpa.org/packages/mastodon-badge.svg"/></a>@@
+
+@@html: <a href="https://ci.codeberg.org/martianh/mastodon.el"><img alt="Build Status" src="https://ci.codeberg.org/api/badges/martianh/mastodon.el/status.svg"></a>@@
+
+* README
+
+=mastodon.el= is an Emacs client for the Mastodon and Pleroma social networks. For info see https://joinmastodon.org/.
+
+** Installation
+
+Clone this repository and add the lisp directory to your load path.
+Then, require it and go.
+
+#+BEGIN_SRC emacs-lisp
+    (add-to-list 'load-path "/path/to/mastodon.el/lisp")
+    (require 'mastodon)
+#+END_SRC
+
+Or, with =use-package=:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package mastodon
+    :ensure t)
+#+END_SRC
+
+The minimum Emacs version is now 27.1. But if you are running an older version it shouldn't be very hard to get it working.
+
+*** MELPA
+
+Add =MELPA= to your archives:
+
+#+BEGIN_SRC emacs-lisp
+  (require 'package)
+  (add-to-list 'package-archives
+               '("melpa" . "http://melpa.org/packages/") t)
+#+END_SRC
+
+Update and install:
+
+=M-x package-refresh-contents RET=
+
+=M-x package-install RET mastodon RET=
+
+*** Emoji
+
+=mastodon-mode= will enable [[https://github.com/iqbalansari/emacs-emojify][Emojify]] if it is loaded in your Emacs environment, so
+there's no need to write your own hook anymore. =emojify-mode= is not required.
+
+*** Discover
+
+=mastodon-mode= can provide a context menu for its keybindings if [[https://github.com/mickeynp/discover.el][Discover]] is
+installed. It is not required.
+
+if you have Discover, add the following to your Emacs init configuration:
+
+#+BEGIN_SRC emacs-lisp
+  (require 'mastodon-discover)
+  (with-eval-after-load 'mastodon (mastodon-discover))
+#+END_SRC
+
+Or, with =use-package=:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package mastodon
+    :ensure t
+    :config
+    (mastodon-discover))
+#+END_SRC
+
+** Usage
+
+*** Logging in to your instance
+
+You need to set 2 variables in your init file to get started:
+
+1. =mastodon-instance-url=
+2. =mastodon-active-user=
+
+(see their doc strings for details). For example If you want to post
+toots as "example_user@social.instance.org", then put this in your init
+file:
+
+#+BEGIN_SRC emacs-lisp
+    (setq mastodon-instance-url "https://social.instance.org"
+          mastodon-active-user "example_user")
+#+END_SRC
+
+Then *restart* Emacs and run =M-x mastodon=. Make sure you are connected
+to internet before you do this. If you have multiple mastodon accounts
+you can activate one at a time by changing those two variables and
+restarting Emacs.
+
+If you were using mastodon.el before 2FA was implemented and the above steps
+do not work, delete the old file specified by =mastodon-client--token-file= and
+restart Emacs and follow the steps again.
+
+*** Timelines
+
+=M-x mastodon=
+
+Opens a =*mastodon-home*= buffer in the major mode and displays  toots. If your credentials are not yet saved, you
+will be prompted for email and password. The app registration process will
+take place if your =mastodon-token-file= does not contain =:client_id= and
+=:client_secret=.
+
+**** Keybindings
+
+|---------------+-----------------------------------------------------------------------|
+| Key           | Action                                                                |
+|---------------+-----------------------------------------------------------------------|
+|               | *Help*                                                                  |
+| =?=             | Open context menu if =discover= is available                            |
+|---------------+-----------------------------------------------------------------------|
+|               | *Timeline actions*                                                      |
+| =n=             | Go to next item (toot, notification)                                  |
+| =p=             | Go to previous item (toot, notification)                              |
+| =M-n=/=<tab>=   | Go to the next interesting thing that has an action                   |
+| =M-p=/=<S-tab>= | Go to the previous interesting thing that has an action               |
+| =F=             | Open federated timeline                                               |
+| =H=             | Open home timeline                                                    |
+| =L=             | Open local timeline                                                   |
+| =N=             | Open notifications timeline                                           |
+| =u=             | Update current timeline                                               |
+| =T=             | Open thread for toot under =point=                                      |
+| =#=             | Prompt for tag and open its timeline                                  |
+| =A=             | Open author profile of toot under =point=                               |
+| =P=             | Open profile of user attached to toot under =point=                     |
+| =O=             | View own profile                                                      |
+| =U=             | update your profile bio note                                          |
+|---------------+-----------------------------------------------------------------------|
+|               | *Other views*                                                           |
+| =S=             | search (posts, users, tags) (NB: only posts you have interacted with) |
+| =I=, =c=, =d=       | view, create, and delete filters                                      |
+| =R=, =a=, =r=       | view/accept/reject follow requests                                    |
+| =G=             | view follow suggestions                                               |
+| =V=             | view your favorited toots                                             |
+| =K=             | view bookmarked toots                                                 |
+|---------------+-----------------------------------------------------------------------|
+|               | *Toot actions*                                                          |
+| =t=             | Compose a new toot                                                    |
+| =c=             | Toggle content warning content                                        |
+| =b=             | Boost toot under =point=                                                |
+| =f=             | Favourite toot under =point=                                            |
+| =k=             | toggle bookmark of toot at point                                      |
+| =r=             | Reply to toot under =point=                                             |
+| =v=             | Vote on poll at point                                                 |
+| =C=             | copy url of toot at point                                             |
+| =C-RET=         | play video/gif at point (requires =mpv=)                                |
+| =i=             | (un)pin your toot at point                                            |
+| =d=             | delete your toot at point, and reload current timeline                |
+| =D=             | delete and redraft toot at point, preserving reply/CW/visibility      |
+| (=S-C=) =W=, =M=, =B= | (un)follow, (un)mute, (un)block author of toot at point               |
+|---------------+-----------------------------------------------------------------------|
+|               | Notifications view                                                    |
+| =a=, =j=          | accept/reject follow request                                          |
+|---------------+-----------------------------------------------------------------------|
+|               | *Quitting*                                                              |
+| =q=             | Quit mastodon buffer, leave window open                               |
+| =Q=             | Quit mastodon buffer and kill window                                  |
+|---------------+-----------------------------------------------------------------------|
+
+**** Toot byline legend
+
+|----------------+------------------------|
+| Marker         | Meaning                |
+|----------------+------------------------|
+| =(B)=            | I boosted this toot    |
+| =(F)=            | I favourited this toot |
+| (=K=) (or emoji) | I bookmarked this toot |
+|----------------+------------------------|
+
+*** Composing toots
+
+=M-x mastodon-toot= (or =t= from a mastodon.el buffer).
+
+Pops a new buffer/window in =mastodon-toot= minor mode. Enter the
+contents of your toot here. =C-c C-c= sends the toot. =C-c C-k= cancels.
+Both actions kill the buffer and window.
+
+Autocompletion of mentions and tags is provided by mastodon company backends
+(requires =company-mode= and =mastodon-toot--enable-completion= must be set to =t=)
+. Type =@= or =#= followed by two or more characters for candidates to appear.
+
+Replies preserve visibility status/content warnings, and include boosters by default.
+
+Server's max toot length, and attachment previews, are shown.
+
+You can download and use your instance's custom emoji
+(=mastodon-toot--download-custom-emoji=, =mastodon-toot--enable-custom-emoji=).
+
+**** Keybindings
+
+|---------+----------------------------------|
+| Key     | Action                           |
+|---------+----------------------------------|
+| =C-c C-c= | Send toot                        |
+| =C-c C-k= | Cancel toot                      |
+| =C-c C-w= | Add content warning              |
+| =C-c C-v= | Change toot visibility           |
+| =C-c C-n= | Add sensitive media/nsfw flag    |
+| =C-c C-a= | Upload attachment(s)             |
+| =C-c !=   | Remove all attachments           |
+| =C-c C-e= | Add emoji (if =emojify= installed) |
+| =C-c C-p= | Create a poll                    |
+|---------+----------------------------------|
+
+**** draft toots
+
+- Compose buffer text is saved as you type, kept in =mastodon-toot-current-toot-text=.
+- =mastodon-toot-save-draft=: save the current toot as a draft.
+- =mastodon-toot-open-draft-toot=: Open a compose buffer and insert one of your draft toots.
+- =mastodon-toot-delete-draft-toot=: Delete a draft toot.
+- =mastodon-toot-delete-all-drafts=: Delete all your drafts.
+
+*** Other commands and account settings:
+
+- =mastodon-url-lookup=: Attempt to load URL in =mastodon.el=. URL may be the one at point or provided in the minibuffer. Should also work if =mastodon.el= is not yet loaded.
+
+- =mastodon-tl-view-instance-description=: View information about the instance that the author of the toot at point is on.
+- =mastodon-tl-view-own-instance=: View information about your own instance.
+- =mastodon-search-trending-tags=: View a list of trending hashtags on your instance.
+
+- =mastodon-profile-update-display-name=: Update the display name for your account.
+- =mastodon-profile-update-user-profile-note=: Update your bio note.
+- =mastodon-profile-update-meta-fields=: Update your metadata fields.
+- =mastodon-profile-set-default-toot-visibility=: Set the default visibility for your toots.
+- =mastodon-profile-account-locked-toggle=: Toggle the locked status of your account. Locked accounts have to manually approve follow requests.
+- =mastodon-profile-account-discoverable-toggle=: Toggle the discoverable status of your account. Non-discoverable accounts are not listed in the profile directory.
+- =mastodon-profile-account-bot-toggle=: Toggle whether your account is flagged as a bot.
+- =mastodon-profile-account-sensitive-toggle=: Toggle whether your posts are marked as sensitive (nsfw) by default.
+
+*** Customization
+
+See =M-x customize-group RET mastodon= to view all customize options.
+
+- Timeline options:
+   - Use proportional fonts
+   - Timestamp format
+   - Relative timestamps
+   - Display user avatars
+   - Avatar image hight
+   - Enable image caching
+
+- Compose options:
+   - Completion for mentions and tags
+   - Enable custom emoji
+   - Display toot being replied to
+
+*** Live-updating timelines: =mastodon-async-mode=
+
+(code taken from https://github.com/alexjgriffith/mastodon-future.el.)
+
+Works for federated, local, and home timelines and for notifications. It's a
+little touchy, one thing to avoid is trying to load a timeline more than once
+at a time. It can go off the rails a bit, but it's still pretty cool. The
+current maintainer of =mastodon.el= is unable to debug improve this feature.
+
+To enable, it, add =(require 'mastodon-async)= to your =init.el=. Then you can
+view a timeline with one of the commands that begin with
+=mastodon-async--stream-=.
+
+*** Translating toots
+
+You can translate toots with =mastodon-toot--translate-toot-text=. At the moment
+this requires [[https://codeberg.org/martianh/lingva.el][lingva.el]], a little interface I wrote to https://lingva.ml, to
+be installed to work.
+
+You could easily modify the simple function to use your emacs translator of
+choice (=libretrans.el= , =google-translate=, =babel=, =go-translate=, etc.), you just
+need to fetch the toot's content with =(mastodon-tl--content toot)= and pass it
+to your translator function as its text argument. Here's what
+=mastodon-toot--translate-toot-text= looks like:
+
+#+begin_src emacs-lisp
+  (defun mastodon-toot--translate-toot-text ()
+    "Translate text of toot at point.
+    Uses `lingva.el'."
+      (interactive)
+      (let* ((toot (mastodon-tl--property 'toot-json)))
+        (if toot
+            (lingva-translate nil (mastodon-tl--content toot))
+          (message "No toot to translate?"))))
+#+end_src
+
+** Dependencies
+
+Hard dependencies (should all install with =mastodon.el=):
+- =request= (for uploading attachments), https://github.com/tkf/emacs-request
+- =persist= for storing some settings across sessions
+- =ts= for poll relative expiry times
+
+Optional dependencies:
+- =company= for autocompletion of mentions and tags when composing a toot
+- =emojify= for inserting and viewing emojis
+- =mpv= and =mpv.el= for viewing videos and gifs
+- =lingva.el= for translating toots
+
+** Contributing
+
+PRs, issues, feature requests, and general feedback are very welcome!
+
+*** Features
+
+1. Create an [[https://github.com/jdenen/mastodon.el/issues][issue]] detailing the feature you'd like to add.
+2. Fork the repository and create a branch off of =develop=.
+3. Create a pull request referencing the issue created in step 1.
+
+*** Fixes
+
+1. In an [[https://github.com/jdenen/mastodon.el/issues][issue]], let me know that you're working to fix it.
+2. Fork the repository and create a branch off of =develop=.
+3. Create a pull request referencing the issue from step 1.
+
+** Contributors:
+
+=mastodon.el= is a the work of a number of people.
+
+Some significant contributors are:
+
+- https://github.com/jdenen [original author]
+- http://atomized.org
+- https://alexjgriffith.itch.io
+- https://github.com/hdurer
+- https://codeberg.org/Red_Starfish

@@ -1,0 +1,12 @@
+# Compiled
+*.elc
+
+# Packaging
+.cask
+
+# Other
+.DS_Store
+stubfile.plstore
+*~
+dist/
+/mastodon.org

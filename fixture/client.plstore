@@ -1,0 +1,6 @@
+;;; public entries -*- mode: plstore -*-
+(("mastodon-http://other.example" :client_id "id1" :client_secret "secret1")
+ ("mastodon-http://mastodon.example" :client_id "id2" :client_secret "secret2")
+ ("user-test8000@mastodon.example" :username "test8000@mastodon.example" :instance "http://mastodon.example" :client_id "id2" :client_secret "secret2" :access_token "token2")
+ ("active-user" :username "test9000@other.example" :instance "http://other.example" :client_id "id1" :client_secret "secret1" :access_token "token1")
+ ("user-test9000@other.example" :username "test9000@other.example" :instance "http://other.example" :client_id "id1" :client_secret "secret1" :access_token "token1"))
